@@ -49,8 +49,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	prometheus.MustRegister(httpRequests)
 
-	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", handler)
+	http.Handle("/metrics", promhttp.Handler())
 
 	http.ListenAndServe(":8080", nil)
 }
