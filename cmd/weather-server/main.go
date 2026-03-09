@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go-weather-cli/internal/weather"
 	"html/template"
 	"net/http"
@@ -13,8 +15,16 @@ type PageData struct {
 
 var tmpl = template.Must(template.ParseFiles("templates/index.html"))
 
-func handler(w http.ResponseWriter, r *http.Request) {
+var httpRequests = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "weather_http_requests_total",
+		Help: "Total number of HTTP requests",
+	},
+	[]string{"path"},
+)
 
+func handler(w http.ResponseWriter, r *http.Request) {
+	httpRequests.WithLabelValues(r.URL.Path).Inc()
 	city := r.FormValue("city")
 
 	var page PageData
@@ -37,7 +47,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	prometheus.MustRegister(httpRequests)
 
+	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", handler)
 
 	http.ListenAndServe(":8080", nil)
