@@ -1,5 +1,3 @@
-weather
-weather-server
 *.exe
 .env
 .idea
